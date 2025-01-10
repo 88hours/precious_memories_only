@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 43.1 (39012) - http://www.bohemiancoding.com/sketch -->
+    <title>Group 2</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icon/checked">
+            <g id="Group-2">
+                <circle id="Oval-2" fill="#F16666" cx="8" cy="8" r="8"></circle>
+                <path d="M12.4239528,5.10413861 C12.2840359,4.96528713 12.0567598,4.96528713 11.916843,5.10413861 L6.84290428,10.144341 L4.61204741,7.94508974 C4.47213057,7.80623826 4.24485448,7.80623826 4.10493763,7.94508974 C3.96502079,8.08394123 3.96502079,8.30873149 4.10493763,8.44722785 L6.59041475,10.8971931 C6.72891112,11.034269 6.95938328,11.034269 7.09787964,10.8971931 L12.4239528,5.60627673 C12.5642247,5.46778036 12.5642247,5.24263498 12.4239528,5.10413861 C12.2840359,4.96528713 12.5642247,5.24263498 12.4239528,5.10413861 L12.4239528,5.10413861 Z" id="Check" fill="#FFFFFF" opacity="0.87"></path>
+            </g>
+        </g>
+    </g>
+</svg>

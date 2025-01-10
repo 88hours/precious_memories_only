@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:/Volumes/MacintoshHD2/Code/SystematicBytes/NomiProject/tensorflow/tensorflow/contrib/ios_examples/memory_map_conversion_DB/Bad Photos Cleaning App.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Pods/Pods.xcodeproj">
+   </FileRef>
+</Workspace>
