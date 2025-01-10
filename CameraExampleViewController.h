@@ -15,6 +15,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <UIKit/UIKit.h>
 
+
 #include <memory>
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/util/memmapped_file_system.h"
@@ -22,6 +23,11 @@
 #import "MWPhotoBrowser.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MBCircularProgressBarView.h"
+#import "PopUpViewController.h"
+#import "AppSettingsController.h"
+#import <GoogleMobileAds/GoogleMobileAds.h>
+
+
 
 @interface CameraExampleViewController
     : UIViewController<MWPhotoBrowserDelegate, UITextFieldDelegate> {
@@ -31,23 +37,27 @@
   std::vector<std::string> labels;
         IBOutlet UIButton			*scan;
 
+        __weak IBOutlet UIButton *viewResults;
 }
+
+@property (weak, nonatomic) IBOutlet UIView *popUpView;
+@property (nonatomic, retain) IBOutlet AppSettingsController *posvc;
 
     @property (nonatomic, strong) NSMutableArray *photos;
     @property (nonatomic, strong) NSMutableArray *thumbs;
     @property (nonatomic, strong) NSMutableArray *assets;
     @property (nonatomic, strong) NSMutableDictionary *selectedImages;
-
+    @property (nonatomic, weak) PopUpViewController *popOverVC;
+    @property(nonatomic, strong) GADBannerView *bannerView;
 
     @property (retain, nonatomic) IBOutlet UILabel *lblFound;
     
     @property (retain, nonatomic) IBOutlet MBCircularProgressBarView *progressView;
-    
+
+
 - (IBAction)getUrl:(id)sender;
 - (IBAction)viewResults:(id)sender;
 - (IBAction)showResult:(id)sender;
     - (void)loadAssets;
-
-
 
 @end

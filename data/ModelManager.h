@@ -25,6 +25,7 @@
 -(void)deleteData:(Model *)data;
 -(Model *)getRecord:(NSMutableDictionary *)data withName:(NSString *)image;
 -(NSMutableDictionary*) retrieveAllData;
+-(NSMutableDictionary*) retrieveDataByFilters;
 -(void)deleteAllData;
 
 @end

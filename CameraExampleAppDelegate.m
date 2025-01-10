@@ -16,6 +16,8 @@
 #import "Model.h"
 #import "ModelManager.h"
 #import "Util.h"
+@import GoogleMobileAds;
+
 
 @implementation CameraExampleAppDelegate
 
@@ -30,7 +32,9 @@
    // [mgrObj deleteAllData];
     [mgrObj displayData];
  
-    
+    // Initialize Google Mobile Ads SDK
+    // Sample AdMob app ID: ca-app-pub-3940256099942544~1458002511
+    [GADMobileAds configureWithApplicationID:@"ca-app-pub-5800951218190212/6525833106"];
     
     
   [self.window makeKeyAndVisible];

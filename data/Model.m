@@ -9,5 +9,5 @@
 #import "Model.h"
 
 @implementation Model
-@synthesize bad_image,URL,state,scan_date;
+@synthesize bad_image,URL,state,scan_date, predictionValue;
 @end

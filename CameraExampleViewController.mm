@@ -37,13 +37,18 @@
 #import "Model.h"
 #import "ModelManager.h"
 #import "MWPhoto+BadPhoto.h"
+#import "PopUpViewController.h"
+#import "MyAppSettings.h"
+#import <SCLAlertView_Objective_C/SCLAlertView.h>
+
+
 
 // If you have your own model, modify this to the file name, and make sure
 // you've added the file to your app resources too.
 static NSString* model_file_name = @"mmapped_kids_graph";
 static NSString* model_file_type = @"pb";
 // This controls whether we'll be loading a plain GraphDef proto, or a
-// file created by the convert_graphdef_memmapped_format utility that wraps a
+// file created by the convert_graphdef_memmapped_format utility that wraps
 // GraphDef and parameter file that can be mapped into memory from file to
 // reduce overall memory usage.
 const bool model_uses_memory_mapping = true;
@@ -58,6 +63,18 @@ const float input_mean = 128.0f;
 const float input_std = 128.0f;
 const std::string input_layer_name = "Mul";
 const std::string output_layer_name = "final_result";
+
+
+NSString* const imageStausBlur = @"out of focus";
+NSString* const  imageStausBlack = @"black";
+NSString* const imageStausNoise = @"bad photos";
+NSString* const  imageStausPhonescreen = @"phonescreen";
+
+
+NSString* const foldersToScan = @"Selfies:Slo-mo:Time-lapse:Bursts:Screenshots:People:Places";
+
+NSInteger iPhotoFoundCount = 0;  //Total number of photeos found in a scan
+int scannedCount;
 
 @implementation CameraExampleViewController
 
@@ -95,6 +112,8 @@ NSString* FilePathForResourceNameDup(NSString* name, NSString* extension) {
         
     });
     [scan setEnabled:NO];
+    [viewResults setHidden:YES];
+    [_posvc enableMe:NO];
     //}
 }
 
@@ -102,11 +121,12 @@ NSString* FilePathForResourceNameDup(NSString* name, NSString* extension) {
 {
     //Enable Scan button for next Scan
     [scan setEnabled:YES];
+    [viewResults setHidden:NO];
 }
 
 - (IBAction)viewResults:(id)sender
 {
-    if(self.photos.count > 0)
+   // if(self.photos.count > 0)
     {
         [self showResult:sender];
     }
@@ -150,16 +170,19 @@ NSString* FilePathForResourceNameDup(NSString* name, NSString* extension) {
     
 }
 
+#pragma mark TensorFlow Model
 int currentJ=0;
+ModelManager *mgrObj;
+NSMutableDictionary *tst;
 -(void) findAllFiles
 {
     NSDate *methodStart = [NSDate date];
     //-------- xb -------------
-    ModelManager *mgrObj=[ModelManager getInstance];
+    mgrObj=[ModelManager getInstance];
     //-------- xb -------------
-    NSMutableDictionary *tst =[[NSMutableDictionary alloc]init];
+    tst =[[NSMutableDictionary alloc]init];
     tst = [mgrObj retrieveAllData];
-    
+    __block int iBlurImagesCount = 0, iBlackImageCount = 0, iNoisyImageCount=0;
     
 
     
@@ -186,15 +209,19 @@ int currentJ=0;
     CGSize imageTargetSize = CGSizeMake(imageSize * scale, imageSize * scale);
     CGSize thumbTargetSize = CGSizeMake(imageSize / 3.0 * scale, imageSize / 3.0 * scale);
     
-    int maxResult = 500;
+    int maxResult = 1500;
+    scannedCount = [self calculateTotalImagestoScan];
+      int pValue =0;
+    
     for (NSInteger i =0; i < result.count; i++) {
         
         
         PHAssetCollection *assetCollection = result[i];
         PHFetchResult *assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:assetCollection options:options];
         
-        //Only Work For Selfies
-        if([assetCollection.localizedTitle containsString:@"Selfies"] == false)
+        NSLog(@">>>>>>>>>>>>>>>>>>>>>The Asset Folder : %@", assetCollection.localizedTitle);
+        
+        if ([foldersToScan rangeOfString:assetCollection.localizedTitle options:NSCaseInsensitiveSearch].location == NSNotFound)
         {
             continue;
         }
@@ -206,9 +233,14 @@ int currentJ=0;
             //-------- xb -------------
             Model *picData = [[Model alloc]init];
             //-------- xb -------------
+            MyAppSettings *settings = [[MyAppSettings alloc] init];
+            [settings loadPrefs];
+          
             
-            for (int j =currentJ; (j < (int)assetsFetchResult.count && self.photos.count < maxResult);) {
-                
+            for (int j =currentJ; (j < (int)assetsFetchResult.count && self.photos.count < maxResult);)
+            {
+             
+                pValue++;
                 // This autorelease pool seems good (a1)
                 @autoreleasepool {
                     
@@ -228,12 +260,18 @@ int currentJ=0;
                                    targetSize:PHImageManagerMaximumSize
                                   contentMode:PHImageContentModeDefault
                                       options:requestOptions
-                                resultHandler:^void(UIImage *image, NSDictionary *dict) {
-                                    if ([dict[@"PHImageResultIsInCloudKey"] isEqual:@YES]) {
+                                resultHandler:^void(UIImage *image, NSDictionary *dict)
+                                {
+                                    
+                                    if ([dict[@"PHImageResultIsInCloudKey"] isEqual:@YES])
+                                    {
                                         isICloudAsset = YES;
                                     }
-                                    if(!isICloudAsset){
-                                        @autoreleasepool {
+                                    
+                                    if(!isICloudAsset)
+                                    {
+                                        @autoreleasepool
+                                        {
                                             NSMutableDictionary *newValues = [NSMutableDictionary dictionary];
                                             
                                             //-------- xb -------------
@@ -246,25 +284,71 @@ int currentJ=0;
                                             Model *obj = [mgrObj getRecord:tst withName:url];
                                             
                                             bool badPhoto = false;
-                                            if (!obj)
+                                            
+                                            //New image or already scnned one
+                                            if (!obj)//New
                                             {
                                                 badPhoto = [self RunInferenceOnImage:image :[dict objectForKey:@"PHImageFileURLKey"] :newValues];
+                                                id value = [newValues objectForKey:@""];
+                                                
+                                                NSArray *keys=[newValues allKeys];
+                                                
+                                                if(keys!=NULL)
+                                                {
+                                                    if(keys.count > 0)
+                                                    {
+                                                        //Either add photo for view or not
+                                                        NSString *strImageCategory = keys[0];
+                                                        NSNumber *predictionVlaue = [newValues objectForKey:strImageCategory];
+                                                        
+                                                        picData.predictionValue = predictionVlaue;
+                                                        
+                                                        if([strImageCategory containsString:imageStausBlack])
+                                                        {
+                                                            iBlackImageCount++;
+                                                        }
+                                                        else if ([strImageCategory containsString:imageStausPhonescreen])
+                                                        {
+                                                            iBlurImagesCount++;
+                                                        }
+                                                        else if ([strImageCategory containsString:imageStausNoise] || [strImageCategory containsString:imageStausBlur])
+                                                        {
+                                                            iNoisyImageCount++;
+                                                        }
+
+                                                        badPhoto = true;
+                                                        
+                                                        picData.bad_image = strImageCategory;
+                                                        
+                                                    }
+                                                }
+                                                
                                             }
-                                            else
+                                            else//Already scanned
                                             {
-                                                badPhoto = [obj.bad_image boolValue];
-                                            }
+                                                
+                                                if([obj.bad_image containsString:imageStausBlack])
+                                                {
+                                                    iBlackImageCount++;
+                                                    badPhoto = true;
+
+                                                }
+                                                else if ([obj.bad_image containsString:imageStausPhonescreen])
+                                                {
+                                                    iBlurImagesCount++;
+                                                    badPhoto = true;
+
+                                                }
+                                                else if([obj.bad_image containsString:imageStausNoise] || [obj.bad_image containsString:imageStausBlur])
+                                                {
+                                                    iNoisyImageCount++;
+                                                    badPhoto = true;
+
+                                                }
+
+                                            }  //End of image scan
 
                                            //-------- xb -------------
-                                            if(badPhoto)
-                                            {
-                                                picData.bad_image = @"1";
-                                            }
-                                            else
-                                            {
-                                                picData.bad_image = @"0";
-                                            }
-                                            
                                             picData.state = @"0";
                                             
                                             NSDate *currDate = [NSDate date];
@@ -279,7 +363,8 @@ int currentJ=0;
                                             //-------- xb -------------
                                             
                                             //image = nil;
-                                            if(badPhoto){
+                                            if(badPhoto)
+                                            {
                                                 NSLog(@"Scanning Selfies: %d / %d - %lu",j,(int)assetsFetchResult.count, (unsigned long)self.photos.count);
                                                 MWPhoto *photo = [MWPhoto photoWithAsset:asset targetSize:thumbTargetSize];
 
@@ -290,27 +375,39 @@ int currentJ=0;
                                                 [_selections addObject:[NSNumber numberWithBool:0]];
                                                  
                                                [self.thumbs addObject:[MWPhoto photoWithAsset:asset targetSize:thumbTargetSize]];
-                                            }else
+                                            }
+                                            else
                                                 image = nil;
                                             
-                                        }
-                                    }
-                                }];
+                                        }//Auto Release pole
+                                        
+                                    } // End of if(!isICloudAsset)
+
+                                }];   //end manager requestImageForAsset  handler
+                    
                 dispatch_async(dispatch_get_main_queue(), ^(void) {
                     [UIView animateWithDuration: 1.f animations:^{
-                        self.progressView.value = (float)(j/(float)assetsFetchResult.count) * 100;
+                        self.progressView.value = (float)(pValue/(float)scannedCount) * 100;
                     }];
-                    
-                    self.lblFound.text = [NSString stringWithFormat:@"Found : %lu ",(unsigned long)self.photos.count];
+                    iPhotoFoundCount = self.photos.count;
+                    self.lblFound.text = [NSString stringWithFormat:@"Found : %lu / %lu",(unsigned long)iPhotoFoundCount,(unsigned long)scannedCount];
                     
                 });
                 
-                if(self.photos.count > maxResult){
+                if(self.photos.count > maxResult)
+                {
                     currentJ = j;
                     break;
                 }
+                
+                    settings.blackImagesTotal = iBlackImageCount;
+                    settings.blurImagesTotal = iBlurImagesCount;
+                    settings.noisyImagesTotal = iNoisyImageCount;
+                    [settings writePrefs];
             }
-            }
+                
+            
+            }//End of folder Scanning
         }
     }
     requestOptions = nil;
@@ -321,8 +418,127 @@ int currentJ=0;
     NSTimeInterval executionTime = [methodFinish timeIntervalSinceDate:methodStart];
     NSLog(@"executionTime = %f", executionTime);
     
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_posvc enableMe:YES];
+    });
+    
 }//End of findAllFiles
 
+-(int) calculateTotalImagestoScan
+{
+    int iTotalImagasToScan = 0;
+
+    //Scan All Desired folders to be scanned and Count the images
+    PHImageRequestOptions *requestOptions = [[PHImageRequestOptions alloc] init];
+    requestOptions.resizeMode   = PHImageRequestOptionsResizeModeExact;
+    requestOptions.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
+    requestOptions.synchronous = true;
+    requestOptions.networkAccessAllowed = NO;
+    
+    PHFetchOptions *options = [PHFetchOptions new];
+    options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:YES]];
+    //set up fetch options, mediaType is image.
+    options.predicate = [NSPredicate predicateWithFormat:@"mediaType = %d",PHAssetMediaTypeImage];
+    
+    //PHFetchResult *result = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:options];
+    PHFetchResult *result = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
+    //PHImageManager *manager = [PHImageManager defaultManager];
+    
+    
+    for (NSInteger i =0; i < result.count; i++) {
+        
+        
+        PHAssetCollection *assetCollection = result[i];
+        PHFetchResult *assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:assetCollection options:options];
+        
+        NSLog(@">>>>>>>>>>>>>>>>>>>>>The Asset Folder : %@ : count : %lu", assetCollection.localizedTitle, (unsigned long)assetsFetchResult.count);
+        //Only Work For Selfies
+        //if([assetCollection.localizedTitle containsString:@"Selfies"] == false)
+        //    if([foldersToScan containsString:assetCollection.localizedTitle] == false)
+        
+        if ([foldersToScan rangeOfString:assetCollection.localizedTitle options:NSCaseInsensitiveSearch].location == NSNotFound)
+        {
+            continue;
+        }
+        
+        iTotalImagasToScan += assetsFetchResult.count;
+    }
+    
+    return iTotalImagasToScan;
+    
+}
+-(bool) retreiveImages
+{
+    
+    [self.photos removeAllObjects];
+    [_selections removeAllObjects];
+    [self.thumbs removeAllObjects];
+    
+    // assets contains PHAsset objects.
+    UIScreen *screen = [UIScreen mainScreen];
+    CGFloat scale = screen.scale;
+    // Sizing is very rough... more thought required in a real implementation
+    CGFloat imageSize = MAX(screen.bounds.size.width, screen.bounds.size.height) * 1.5;
+    CGSize imageTargetSize = CGSizeMake(imageSize * scale, imageSize * scale);
+    CGSize thumbTargetSize = CGSizeMake(imageSize / 3.0 * scale, imageSize / 3.0 * scale);
+    
+    //Retrive images from DB
+    //-------- xb -------------
+    ModelManager *mgrObj=[ModelManager getInstance];
+    //-------- xb -------------
+    NSMutableDictionary *filteredImages =[[NSMutableDictionary alloc]init];
+    filteredImages = [mgrObj retrieveDataByFilters];
+    
+    NSMutableArray *photoesToFetch =  [[NSMutableArray alloc] init];
+
+    if(filteredImages)
+    {
+        NSLog(@"Filter Data retrived : %d", filteredImages.count);
+        
+            if(filteredImages.count == 0)
+           {
+               
+               return false;
+           }
+        
+    }
+    
+    for (NSString* key in filteredImages)
+    {
+        Model *picObj = [filteredImages objectForKey:key];
+         [photoesToFetch addObject:picObj.URL];
+
+    }
+
+    
+    PHFetchResult *result = [PHAsset fetchAssetsWithLocalIdentifiers:photoesToFetch options:nil];
+    
+    if (result.count > 0)
+    {
+        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, result.count)];
+        
+        //Get Assets from the specified indexes
+        NSArray *assetToShow= [result objectsAtIndexes:indexSet];
+        
+        for(int iIndex = 0; iIndex < assetToShow.count; iIndex++)
+        {
+            PHAsset *asset = assetToShow[iIndex];
+            
+            MWPhoto *photo = [MWPhoto photoWithAsset:asset targetSize:thumbTargetSize];
+        
+            photo.photoUrl = [NSURL URLWithString:asset.localIdentifier];//[dict objectForKey:@"PHImageFileURLKey"];
+        
+            [self.photos addObject:photo];
+        
+            [_selections addObject:[NSNumber numberWithBool:0]];
+        
+            [self.thumbs addObject:[MWPhoto photoWithAsset:asset targetSize:thumbTargetSize]];
+        }
+        
+    }
+    
+    return true;
+}
 
 -(unsigned) memoryInMB{
     unsigned latest = 0;
@@ -383,29 +599,55 @@ int currentJ=0;
         }
     }
     
-    if (tf_session.get()) {
+    if (tf_session.get())
+    {
         std::vector<tensorflow::Tensor> outputs;
         tensorflow::Status run_status = tf_session->Run(
                                                         {{input_layer_name, image_tensor}}, {output_layer_name}, {}, &outputs);
-        if (!run_status.ok()) {
+        if (!run_status.ok())
+        {
             LOG(ERROR) << "Running model failed:" << run_status;
-        } else {
+        }
+        else
+        {
             tensorflow::Tensor *output = &outputs[0];
             auto predictions = output->flat<float>();
             
-            for (int index = 0; index < predictions.size(); index += 1) {
+            //Load filters
+            MyAppSettings *setting = [[MyAppSettings alloc] init];
+            [setting loadPrefs];
+            
+            for (int index = 0; index < predictions.size(); index += 1)
+            {
                 const float predictionValue = predictions(index);
-                if (predictionValue > 0.5f) {
+                
+                if (predictionValue > 0.5f)
+                {
                     std::string label = labels[index % predictions.size()];
                     NSString *labelObject = [NSString stringWithCString:label.c_str()];
                     NSNumber *valueObject = [NSNumber numberWithFloat:predictionValue];
                     [newValues setObject:valueObject forKey:labelObject];
                     NSLog(@"Prediction Value: %f ", predictionValue );
-
-                    isBadPhoto = predictionValue > 0.8f && ([labelObject containsString:@"black"] || [labelObject containsString:@"phonescreen"]) ;
-                    isBadPhoto = isBadPhoto ? isBadPhoto : predictionValue > 0.8f && ([labelObject containsString:@"bad photos"]) ;
+                    NSLog(@"image status : %@", labelObject);
+                    NSLog(@"Filer Values : [Blure :  %d] [Black :  %d] [Noise :  %d]", setting.IsBlur,setting.IsBlack,setting.IsNoise);
+                  
+                  /*  if(predictionValue > 0.8f)
+                    {
+                        
+                        if((setting.IsBlack && [labelObject containsString:imageStausBlack]) || (setting.IsBlur && [labelObject containsString:imageStausBlur]) || (setting.IsNoise && [labelObject containsString:imageStausNoise]))
+                        {
+                                isBadPhoto = YES;
+                        }
+                    }
+                    else
+                    {
+                        isBadPhoto = NO;
+                    }*/
                     
+                    isBadPhoto = predictionValue > 0.85f && ([labelObject containsString:@"black"] || [labelObject containsString:@"phonescreen"]) ;
+                    isBadPhoto = isBadPhoto ? isBadPhoto : predictionValue > 0.85f && ([labelObject containsString:@"bad photos"]) ;
                 }
+                
             }
             if(isBadPhoto){
                 NSString *log = [NSString stringWithFormat:@"%@\n", newValues];
@@ -449,6 +691,53 @@ int currentJ=0;
 }
 
 - (void)viewDidLoad {
+
+    
+    //------------------------------------------------------
+    //Only to prompt for permissions to access the photo gallery
+      PHImageManager *manager = [PHImageManager defaultManager];
+    //--------------------------------------------------------
+
+    MyAppSettings *appSettings = [[MyAppSettings alloc] init];
+    [appSettings loadPrefs];
+    
+    //Screen Width and Height
+    CGFloat width = [UIScreen mainScreen].bounds.size.width;
+    CGFloat hieght = [UIScreen mainScreen].bounds.size.height;
+   
+    if(!appSettings.IsAppLaunchedAlready)
+
+    {
+
+        [appSettings setDefaultSettings];
+        appSettings.IsAppLaunchedAlready = YES;
+        
+        [appSettings writePrefs];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
+        _popOverVC = [storyboard instantiateViewControllerWithIdentifier:@"sbPopUpID"];
+    
+        _popOverVC.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+        [self addChildViewController:_popOverVC];
+        _popOverVC.view.frame = CGRectMake((width/2-150), (hieght/2-150), 300, 300);
+        [self.view addSubview:_popOverVC.view];
+        [_popOverVC didMoveToParentViewController:self];
+    }
+    else
+    {
+        [scan setEnabled:YES];
+    }
+    
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
+    _posvc = [storyboard instantiateViewControllerWithIdentifier:@"filterViewID"];
+    
+    _posvc.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    [self addChildViewController:_posvc];
+    _posvc.view.frame = CGRectMake((width-37), (hieght/2-150), 294, 186);
+    [self.view addSubview:_posvc.view];
+    [_posvc didMoveToParentViewController:self];
+    [_posvc enableMe:NO];
+    
     [super viewDidLoad];
     // Initialise
     self.assets = [NSMutableArray new];
@@ -472,11 +761,80 @@ int currentJ=0;
     if (!labels_status.ok()) {
         LOG(FATAL) << "Couldn't load labels: " << labels_status;
     }
-}
+    
+    //Register Notification
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(enableScanning:)
+                                                 name:@"EnableScanning"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(UpdateUI:)
+                                                 name:@"UpdateUI"
+                                               object:nil];
+    
+    NSLog(@"admob start");
+    //----------------GoogleMobAds---------------
+    
+    [self load_BannerAd];
+    //----------------GoogleMobAds---------------
+    NSLog(@"admob end");
+    
+   }
 
 - (void)viewDidUnload {
     [super viewDidUnload];
 }
+
+#pragma mark Notification Center
+
+-(void)enableScanning:(NSNotification *)notification
+{
+    NSLog(@"????????????????recieved");
+
+    [scan setEnabled:YES];
+}
+
+-(void) UpdateUI :(NSNotification *)notification
+{
+    self.lblFound.text = [NSString stringWithFormat:@"Found : %lu / %lu",(unsigned long)iPhotoFoundCount,(unsigned long)scannedCount];
+}
+
+-(void)load_BannerAd{
+    
+    self.bannerView = [[GADBannerView alloc]
+                       initWithAdSize:kGADAdSizeBanner];
+    [self.view addSubview:self.bannerView];
+    // Constraint keeps ad at the bottom of the screen at all times.
+    [self.view addConstraint:
+     [NSLayoutConstraint constraintWithItem:self.bannerView
+                                  attribute:NSLayoutAttributeBottom
+                                  relatedBy:NSLayoutRelationEqual
+                                     toItem:self.view
+                                  attribute:NSLayoutAttributeBottom
+                                 multiplier:1.0
+                                   constant:0]];
+    
+    // Constraint keeps ad in the center of the screen at all times.
+    [self.view addConstraint:
+     [NSLayoutConstraint constraintWithItem:self.bannerView
+                                  attribute:NSLayoutAttributeCenterX
+                                  relatedBy:NSLayoutRelationEqual
+                                     toItem:self.view
+                                  attribute:NSLayoutAttributeCenterX
+                                 multiplier:1.0
+                                   constant:0]];
+    
+    self.bannerView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    
+    
+    self.bannerView.adUnitID = @"ca-app-pub-5800951218190212/6525833106";
+    self.bannerView.rootViewController = self;
+    [self.bannerView loadRequest:[GADRequest request]];
+    
+}
+
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -562,7 +920,10 @@ int currentJ=0;
 
 - (void)photoBrowserDidRemoveFinishModalPresentation:(MWPhotoBrowser *)photoBrowser {
     // If we subscribe to this method we must dismiss the view controller ourselves
-    
+    int iBlackImageTobeDeleted = 0;
+    int iBlurImagesTobeDeleted = 0;
+    int iNoisyImageTobeDeleted = 0;
+
    
     NSLog(@"Did remove finish modal presentation");
     
@@ -585,11 +946,33 @@ int currentJ=0;
             {
                 [_selectedImages setObject:key  forKey: key];
             }
+            
+            
+
+            
 
             //Delete Image from Photo Liberary
             MWPhoto *asset = [photos objectAtIndex:i];
             [photoesToDelete addObject:asset.photoUrl.absoluteString];
             NSLog(@"%@", asset.photoUrl);
+            
+            //Count different category images
+            NSString *url = [NSString stringWithFormat:@"%@", asset.photoUrl.absoluteString];
+            Model *obj = [mgrObj getRecord:tst withName:url];
+            
+            if([obj.bad_image containsString:imageStausBlack])
+            {
+                iBlackImageTobeDeleted++;
+            }
+            else if ([obj.bad_image containsString:imageStausPhonescreen])
+            {
+                iBlurImagesTobeDeleted++;
+            }
+            else if ([obj.bad_image containsString:imageStausNoise] || [obj.bad_image containsString:imageStausBlur])
+            {
+                iNoisyImageTobeDeleted++;
+            }
+            
             
             //Remove from Browser collection as well
             [photos removeObjectAtIndex:i];
@@ -599,6 +982,14 @@ int currentJ=0;
         
     }//End For Loop
     
+    
+    //Update Settings
+    MyAppSettings *setting = [[MyAppSettings alloc] init];
+    [setting loadPrefs];
+    setting.blackImagesTotal = setting.blackImagesTotal - iBlackImageTobeDeleted;
+    setting.blurImagesTotal = setting.blurImagesTotal - iBlurImagesTobeDeleted;
+    setting.noisyImagesTotal = setting.noisyImagesTotal - iNoisyImageTobeDeleted;
+    [setting writePrefs];
    
     //Remove photoes from the library
     [self deleteAssetWithLocalIdentifiers:photoesToDelete];
@@ -641,9 +1032,24 @@ int currentJ=0;
              }
                                               completionHandler:^(BOOL success, NSError *error)
              {
+                 
+                 NSLog(@" Last delete objects req33333: %d", assetToBeDeleted.count);
+
+                 
                  if ((!success) && (error != nil))
                  {
                      NSLog(@"Error deleting asset: %@", [error description]);
+                 }
+                 else
+                 {
+                     NSLog(@"Done with deleting asset:");
+                     iPhotoFoundCount = iPhotoFoundCount - assetToBeDeleted.count;
+
+                     dispatch_async(dispatch_get_main_queue(), ^{
+                         self.lblFound.text = [NSString stringWithFormat:@"Found : %lu / %lu",(unsigned long)iPhotoFoundCount,(unsigned long)scannedCount];
+                         
+                     });
+
                  }
              }];
         }
@@ -654,6 +1060,10 @@ int currentJ=0;
 
 - (IBAction)showResult:(id)sender {
     
+    
+    if([self retreiveImages])
+    {
+    
     //Initilize selected images dic
     _selectedImages =[[NSMutableDictionary alloc] init];
 
@@ -661,21 +1071,40 @@ int currentJ=0;
     = [[MWPhotoBrowser alloc] initWithDelegate:self];
     
     // Set options
-    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
+    browser.displayActionButton = NO; // Show action button to allow sharing, copying, etc (defaults to YES)
     browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
-   //ZEE browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
+   //browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
     browser.displaySelectionButtons = YES;
-    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
+    browser.zoomPhotosToFill = NO; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
     browser.alwaysShowControls = NO; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
     browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
     browser.startOnGrid = YES; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
-    browser.autoPlayOnAppear = NO; // Auto-play first video
-    
+    browser.autoPlayOnAppear = NO; // Auto-play first video    
     [browser setCurrentPhotoIndex:0];
     // Present
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
     nc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
     [self presentViewController:nc animated:YES completion:nil];
+    }
+    else
+    {
+        NSLog(@"No Filter Data retrived");
+        
+/*        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"No Filter is Selected"
+                                                                       message:@"Please select a filter to view the images."
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                                              handler:^(UIAlertAction * action) {}];
+        
+        [alert addAction:defaultAction];
+        [self presentViewController:alert animated:YES completion:nil];*/
+        
+        SCLAlertView *alert = [[SCLAlertView alloc] init];
+
+        [alert showInfo:self title:@"No data to display " subTitle:@"Please select a filter to view the images or scan images first." closeButtonTitle:@"OK" duration:0.0f]; // Error
+
+    }
 }
 
 

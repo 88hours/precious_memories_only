@@ -1,26 +1,32 @@
 PODS:
   - DACircularProgress (2.3.1)
+  - Google-Mobile-Ads-SDK (7.23.0)
   - MBCircularProgressBar (0.3.5)
   - MBProgressHUD (0.9.2)
   - MWPhotoBrowser (2.1.2):
     - DACircularProgress (~> 2.3)
     - MBProgressHUD (~> 0.9)
     - SDWebImage (!= 3.7.2, ~> 3.7)
+  - SCLAlertView-Objective-C (1.1.2)
   - SDWebImage (3.8.2):
     - SDWebImage/Core (= 3.8.2)
   - SDWebImage/Core (3.8.2)
 
 DEPENDENCIES:
+  - Google-Mobile-Ads-SDK
   - MBCircularProgressBar
   - MWPhotoBrowser
+  - SCLAlertView-Objective-C
 
 SPEC CHECKSUMS:
   DACircularProgress: 4dd437c0fc3da5161cb289e07ac449493d41db71
+  Google-Mobile-Ads-SDK: a43dc8efdb566c74d00ac6934c781de969348d80
   MBCircularProgressBar: 0b795b722a5eb5b0923822f90474e2576a1a7855
   MBProgressHUD: 1569cf7ace17a8bac47aabfbb8580a49690386d1
   MWPhotoBrowser: 5836d7aa041dc05a13de380c246826578adc5ea5
+  SCLAlertView-Objective-C: 0e54351fa4f98a5c7c6ad3727e6dbb46784534e5
   SDWebImage: 098e97e6176540799c27e804c96653ee0833d13c
 
-PODFILE CHECKSUM: 52c8f19f4329eae8e8d7a59b137d22db99fc6ed8
+PODFILE CHECKSUM: 10c1067c70ccc47e4a43ec6e1edc176b0d798ced
 
 COCOAPODS: 1.0.1

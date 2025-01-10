@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "592FF8B418ECBD7600C164F8"
-               BuildableName = "Bad Photos Cleaning App.app"
-               BlueprintName = "Bad Photos Cleaning App"
+               BuildableName = "Only Precious Memories.app"
+               BlueprintName = "Only Precious Memories"
                ReferencedContainer = "container:Bad Photos Cleaning App.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -33,8 +33,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "592FF8B418ECBD7600C164F8"
-            BuildableName = "Bad Photos Cleaning App.app"
-            BlueprintName = "Bad Photos Cleaning App"
+            BuildableName = "Only Precious Memories.app"
+            BlueprintName = "Only Precious Memories"
             ReferencedContainer = "container:Bad Photos Cleaning App.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -56,8 +56,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "592FF8B418ECBD7600C164F8"
-            BuildableName = "Bad Photos Cleaning App.app"
-            BlueprintName = "Bad Photos Cleaning App"
+            BuildableName = "Only Precious Memories.app"
+            BlueprintName = "Only Precious Memories"
             ReferencedContainer = "container:Bad Photos Cleaning App.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -75,8 +75,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "592FF8B418ECBD7600C164F8"
-            BuildableName = "Bad Photos Cleaning App.app"
-            BlueprintName = "Bad Photos Cleaning App"
+            BuildableName = "Only Precious Memories.app"
+            BlueprintName = "Only Precious Memories"
             ReferencedContainer = "container:Bad Photos Cleaning App.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

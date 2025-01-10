@@ -13,4 +13,6 @@
 @property (nonatomic,strong) NSString *bad_image;
 @property (nonatomic,strong) NSString *state;
 @property (nonatomic,strong) NSString *scan_date;
+@property (nonatomic,strong) NSNumber *predictionValue;
+
 @end

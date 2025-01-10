@@ -7,6 +7,14 @@
 //
 
 #import "ModelManager.h"
+#import "MyAppSettings.h"
+
+
+NSString* const imageStausBlur = @"out of focus";
+NSString* const  imageStausBlack = @"black";
+NSString* const imageStausNoise = @"bad photos";
+NSString* const  imageStausPhonescreen = @"phonescreen";
+
 
 
 @implementation ModelManager
@@ -33,7 +41,7 @@ static sqlite3_stmt *statement = nil;
 -(void)insertData:(Model *)data
 {
     [instance.database open];
-    BOOL isInserted=[instance.database executeUpdate:@"INSERT INTO imagedata (url,state,badimage,scandate) VALUES (?,?,?,?)",data.URL,data.state,data.bad_image,data.scan_date];
+    BOOL isInserted=[instance.database executeUpdate:@"INSERT INTO imagedata (url,state,badimage,scandate, predictionValue) VALUES (?,?,?,?,?)",data.URL,data.state,data.bad_image,data.scan_date, data.predictionValue];
     [instance.database close];
     
     if(isInserted)
@@ -95,6 +103,10 @@ static sqlite3_stmt *statement = nil;
         obj.bad_image = [resultSet stringForColumn:@"badimage"];
         obj.scan_date = [resultSet stringForColumn:@"scandate"];
         obj.state = [resultSet stringForColumn:@"state"];
+            
+       NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
+       f.numberStyle = NSNumberFormatterDecimalStyle;
+       obj.predictionValue = [f numberFromString : [resultSet stringForColumn:@"predictionValue"] ];
         
         
         
@@ -105,6 +117,76 @@ static sqlite3_stmt *statement = nil;
     NSLog(@"Data Parsed");
     return wholeData;
 }
+
+-(NSMutableDictionary*) retrieveDataByFilters
+{
+    MyAppSettings  *settings = [[MyAppSettings alloc] init];
+    [settings loadPrefs];
+    
+    NSMutableString *filteredQuery = [NSMutableString string];
+    NSString *blackImage = @"";
+    NSString *blurImage = @"";
+    NSString *noisyImage = @"";
+    NSString *photoScreenImage = @"";
+    
+    if(settings.IsBlack)
+    {
+       // [filteredQuery appendFormat:@"%@", imageStausBlack];
+        blackImage = imageStausBlack;
+        
+    }
+    
+    if(settings.IsBlur)
+    {
+       // [filteredQuery appendFormat:@"%@", imageStausBlur];
+        photoScreenImage = imageStausPhonescreen;
+    }
+
+    
+    if(settings.IsNoise)
+    {
+        //[filteredQuery appendFormat:@"%@", imageStausNoise];
+        noisyImage = imageStausNoise;
+        blurImage = imageStausBlur;
+
+    }
+
+    
+    //NSString  *sqlTemp =[NSString  stringWithFormat:@"select * from imagedata where badimage like '%@,' || ? || ',%@'",filteredQuery, filteredQuery1];
+    NSString  *sqlTemp =[NSString  stringWithFormat:@"select * from imagedata where badimage='%@' OR badimage='%@' OR badimage='%@' OR badimage='%@' ORDER BY predictionValue ASC", blackImage, blurImage, noisyImage, photoScreenImage];
+    
+    NSLog(@">>>>>>>>>>THe QUERY is : %@", sqlTemp);
+    
+    NSMutableDictionary *wholeData = [NSMutableDictionary dictionary];
+    
+    [instance.database open];
+    //FMResultSet *resultSet=[instance.database executeQuery:@"SELECT * FROM imagedata"];
+     FMResultSet *resultSet=[instance.database executeQuery:sqlTemp];
+    if(resultSet)
+    {
+        while([resultSet next])
+        {      NSLog(@"URL : %@    state : %@    bad_image : %@    scan_date : %@    Prediction : %f",[resultSet stringForColumn:@"url"],[resultSet stringForColumn:@"state"],[resultSet stringForColumn:@"badimage"],[resultSet stringForColumn:@"scandate"],[resultSet doubleForColumn:@"predictionValue"]);
+            Model *obj =[[Model alloc]init];
+            obj.URL = [resultSet stringForColumn:@"url"];
+            obj.bad_image = [resultSet stringForColumn:@"badimage"];
+            obj.scan_date = [resultSet stringForColumn:@"scandate"];
+            obj.state = [resultSet stringForColumn:@"state"];
+           
+            
+            NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
+            f.numberStyle = NSNumberFormatterDecimalStyle;
+            obj.predictionValue = [f numberFromString : [resultSet stringForColumn:@"predictionValue"] ];
+            
+
+            
+            [wholeData setObject:obj forKey:[resultSet stringForColumn:@"url"]];
+        }
+    }
+    [instance.database close];
+    NSLog(@"Data Parsed");
+    return wholeData;
+}
+
 -(Model *)getRecord:(NSMutableDictionary *)data withName:(NSString *)image{
    
     NSLog(@" %@ --- %lu ",image,(unsigned long)[data allKeys].count);
