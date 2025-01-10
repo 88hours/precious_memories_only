@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES" initialViewController="2">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Camera Example View Controller-->
+        <scene sceneID="5">
+            <objects>
+                <viewController id="2" customClass="CameraExampleViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="mIf-oa-hox"/>
+                        <viewControllerLayoutGuide type="bottom" id="JRs-B8-nYR"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="3">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="109 River City.png" translatesAutoresizingMaskIntoConstraints="NO" id="kJM-Rb-EZF">
+                                <rect key="frame" x="-132.5" y="-234.5" width="640" height="1136"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iD8-yH-eWH">
+                                <rect key="frame" x="26" y="40" width="323" height="36"/>
+                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <fontDescription key="fontDescription" name="Menlo-Regular" family="Menlo" pointSize="20"/>
+                                <state key="normal" title="Start Scan">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="getUrl:" destination="2" eventType="touchUpInside" id="I9g-UJ-vHY"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="sg8-PS-75h">
+                                <rect key="frame" x="10" y="611" width="355" height="36"/>
+                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <fontDescription key="fontDescription" name="Menlo-Regular" family="Menlo" pointSize="20"/>
+                                <state key="normal" title="View Results">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="viewResults:" destination="2" eventType="touchUpInside" id="5gC-Nk-eON"/>
+                                </connections>
+                            </button>
+                            <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" image="Oval.png" translatesAutoresizingMaskIntoConstraints="NO" id="MOG-Pq-dc6">
+                                <rect key="frame" x="59" y="206" width="258" height="256"/>
+                            </imageView>
+                            <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" image="Oval1.png" translatesAutoresizingMaskIntoConstraints="NO" id="9aE-ZB-Xdh">
+                                <rect key="frame" x="102" y="248" width="172" height="172"/>
+                            </imageView>
+                            <view userInteractionEnabled="NO" contentMode="center" translatesAutoresizingMaskIntoConstraints="NO" id="eDc-lG-RgP" customClass="MBCircularProgressBarView">
+                                <rect key="frame" x="102" y="206" width="172" height="256"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="value">
+                                        <real key="value" value="0.0"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="progressColor">
+                                        <color key="value" red="1" green="0.94670723679639268" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="progressStrokeColor">
+                                        <color key="value" red="1" green="0.94670723680000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="emptyLineWidth">
+                                        <real key="value" value="-1"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="fontColor">
+                                        <color key="value" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="progressLineWidth">
+                                        <real key="value" value="10"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Found : 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PZR-ue-7na">
+                                <rect key="frame" x="26" y="523" width="323" height="23"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="19"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="PZR-ue-7na" firstAttribute="leading" secondItem="3" secondAttribute="leadingMargin" constant="10" id="2Wd-2I-8J5"/>
+                            <constraint firstItem="MOG-Pq-dc6" firstAttribute="centerY" secondItem="3" secondAttribute="centerY" id="3lD-ky-Ddo"/>
+                            <constraint firstItem="iD8-yH-eWH" firstAttribute="centerX" secondItem="3" secondAttribute="centerX" id="6Rh-1O-vI6"/>
+                            <constraint firstAttribute="trailing" secondItem="sg8-PS-75h" secondAttribute="trailing" constant="10" id="6dr-wl-4Ef"/>
+                            <constraint firstItem="eDc-lG-RgP" firstAttribute="centerX" secondItem="3" secondAttribute="centerX" id="EMy-1x-sDd"/>
+                            <constraint firstItem="MOG-Pq-dc6" firstAttribute="centerX" secondItem="3" secondAttribute="centerX" id="Fvh-uz-QqZ"/>
+                            <constraint firstItem="sg8-PS-75h" firstAttribute="top" secondItem="PZR-ue-7na" secondAttribute="bottom" constant="65" id="HlA-bt-V7Q"/>
+                            <constraint firstItem="9aE-ZB-Xdh" firstAttribute="centerY" secondItem="3" secondAttribute="centerY" id="ILh-qP-Ejg"/>
+                            <constraint firstItem="eDc-lG-RgP" firstAttribute="height" secondItem="MOG-Pq-dc6" secondAttribute="height" id="LC8-1L-1WK"/>
+                            <constraint firstItem="9aE-ZB-Xdh" firstAttribute="width" secondItem="eDc-lG-RgP" secondAttribute="width" id="Lt6-Cb-W3W"/>
+                            <constraint firstItem="JRs-B8-nYR" firstAttribute="top" secondItem="sg8-PS-75h" secondAttribute="bottom" constant="20" id="OWL-mI-BtX"/>
+                            <constraint firstItem="iD8-yH-eWH" firstAttribute="leading" secondItem="3" secondAttribute="leadingMargin" constant="10" id="SO6-tQ-YPW"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="PZR-ue-7na" secondAttribute="trailing" constant="10" id="WHv-Fq-4b0"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="iD8-yH-eWH" secondAttribute="trailing" constant="10" id="YGA-sH-LGH"/>
+                            <constraint firstItem="iD8-yH-eWH" firstAttribute="top" secondItem="mIf-oa-hox" secondAttribute="bottom" constant="20" id="azz-R1-rey"/>
+                            <constraint firstItem="sg8-PS-75h" firstAttribute="leading" secondItem="3" secondAttribute="leading" constant="10" id="f8v-0X-h1s"/>
+                            <constraint firstItem="eDc-lG-RgP" firstAttribute="centerY" secondItem="3" secondAttribute="centerY" id="jRX-1u-HNW"/>
+                            <constraint firstItem="9aE-ZB-Xdh" firstAttribute="centerX" secondItem="3" secondAttribute="centerX" id="tiF-NZ-sMF"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="lblFound" destination="PZR-ue-7na" id="cbz-rk-xxU"/>
+                        <outlet property="progressView" destination="eDc-lG-RgP" id="ULW-R9-cyY"/>
+                        <outlet property="scan" destination="iD8-yH-eWH" id="21c-DP-rKc"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="4" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-323.5" y="-18.5"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="109 River City.png" width="640" height="1136"/>
+        <image name="Oval.png" width="258" height="256"/>
+        <image name="Oval1.png" width="172" height="172"/>
+    </resources>
+    <simulatedMetricsContainer key="defaultSimulatedMetrics">
+        <simulatedStatusBarMetrics key="statusBar"/>
+        <simulatedOrientationMetrics key="orientation"/>
+        <simulatedScreenMetrics key="destination" type="retina4_7.fullscreen"/>
+    </simulatedMetricsContainer>
+</document>
